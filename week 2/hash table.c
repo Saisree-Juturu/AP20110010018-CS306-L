@@ -6,6 +6,7 @@ struct Symbol
 {
     char label[100];
     int address;
+    char type[100];
 };
 
 struct Symbol table[10][50];
@@ -18,7 +19,7 @@ int main(int argc, char **argv)
 
     do
     {
-        printf("\nSYMBOL TABLE (HASH TABLE)\n");
+        printf("\nSYMBOL TABLE\n");
         printf("\n1. INSERT");
         printf("\n2. SEARCH");
         printf("\n3. DISPLAY\n");
@@ -43,7 +44,9 @@ int main(int argc, char **argv)
             {
                 struct Symbol symbol;
                 printf("\nSymbol %d:", i + 1);
-                printf("\nInput address: ");
+                printf("\nInput type: ");
+                scanf("%s", symbol.type);
+                printf("Input address: ");
                 scanf("%d", &symbol.address);
                 printf("Input label: ");
                 scanf("%s", symbol.label);
@@ -71,6 +74,7 @@ int main(int argc, char **argv)
                 if (strcmp(label, table[hash][i].label) == 0)
                 {
                     printf("\nSymbol found!\n");
+                    printf("\nType: %s", table[hash][i].type);
                     printf("\nAddress: %d", table[hash][i].address);
                     printf("\nLabel: %s\n", table[hash][i].label);
                     found = 1;
@@ -86,11 +90,12 @@ int main(int argc, char **argv)
         }
         case 3:
         {
+            printf("\nType\tAddress\tLabel\n");
             for (int i = 0; i < 10; i++)
             {
                 for (int j = 0; j < indexes[i]; j++)
                 {
-                    printf("%d\t%s\n", table[i][j].address, table[i][j].label);
+                    printf("%s\t%d\t%s\n", table[i][j].type, table[i][j].address, table[i][j].label);
                 }
             }
             break;
