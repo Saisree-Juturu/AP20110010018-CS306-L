@@ -1,5 +1,12 @@
-E->TA
-A->+TA|^
-T->FB
-B->*FB|^ 
-F->(E)|d
+11
+P-AQRbe
+P-mn
+P-DEi
+A-ab
+A-^
+Q-pq
+Q-^
+R-rs
+R-^
+D-d
+E-e
