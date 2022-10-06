@@ -1,140 +1,175 @@
-#include<bits/stdc++.h>
-using namespace std;
+#include <stdio.h>
+#include <ctype.h>
 
-set<char> ss;
-bool dfs(char i, char org, char last, map<char,vector<vector<char>>> &mp){
-    bool rtake = false;
-    for(auto r : mp[i]){
-        bool take = true;
-        for(auto s : r){
-            if(s == i) break;
-            if(!take) break;
-            if(!(s>='A'&&s<='Z')&&s!='^'){
-                ss.insert(s);
-                break;
-            }
-            else if(s == '^'){
-                if(org == i||i == last)
-                ss.insert(s);
-                rtake = true;
-                break;
-            }
-            else{
-                take = dfs(s,org,r[r.size()-1],mp);
-                rtake |= take;
-            }
-        }
+void FIRST(char *, char);
+void FOLLOW(char *, char);
+void addToArray(char *, char);
+void printArray(char *);
+
+int n;
+char production[20][20];
+
+int main()
+{
+    int i, j = 0, k, foundNt = 0;
+    char c, result[20], nt[20];
+    nt[0] = '\0';
+
+    FILE *fp = fopen("input.txt", "r");
+
+    fscanf(fp, "%d", &n);
+    for (i = 0; i < n; i++)
+    {
+        fscanf(fp, "%s", production[i]);
+        printArray(production[i]);
+        printf("\n");
+        addToArray(nt, production[i][0]);
     }
-    return rtake;
+
+    fclose(fp);
+
+    printf("\n\n");
+
+    for (k = 0; nt[k] != '\0'; k++)
+    {
+        c = nt[k];
+        FIRST(result, c);
+        printf("FIRST(%c)= { ", c);
+        printArray(result);
+        printf("}\n");
+    }
+
+    printf("\n\n");
+
+    for (k = 0; nt[k] != '\0'; k++)
+    {
+        c = nt[k];
+        FOLLOW(result, c);
+        printf("FOLLOW(%c)= { ", c);
+        printArray(result);
+        printf("}\n");
+    }
+
+    printf("\n\n");
+
+    return 0;
 }
 
-int main(){
-    int i,j;
-    ifstream fin("input.txt");
-    string num;
-    vector<int> fs;
-    vector<vector<int>> a;
-    map<char,vector<vector<char>>> mp;
-    char start;
-    bool flag = 0;
-    cout<<"Grammar: "<<'\n';
-    while(getline(fin,num)){
-        if(flag == 0) start = num[0],flag = 1;
-        cout<<num<<'\n';
-        vector<char> temp;
-        char s = num[0];
-        for(i=3;i<num.size();i++){
-            if(num[i] == '|'){
-                mp[s].push_back(temp);
-                temp.clear();
+void FIRST(char *Result, char c)
+{
+    int i, j, k;
+    char subResult[20];
+    int foundEpsilon;
+    subResult[0] = '\0';
+    Result[0] = '\0';
+    if (!(isupper(c)))
+        addToArray(Result, c);
+    else
+        for (i = 0; i < n; i++)
+        {
+            if (production[i][0] == c)
+            {
+                if (production[i][2] == '^')
+                    addToArray(Result, '^');
+                else
+                {
+                    for (j = 2; production[i][j] != '\0'; j++)
+                    {
+                        foundEpsilon = 0;
+                        FIRST(subResult, production[i][j]);
+
+                        for (k = 0; subResult[k] != '\0'; k++)
+                            if (subResult[k] == '^')
+                                foundEpsilon = 1;
+                            else
+                                addToArray(Result, subResult[k]);
+                        if (!foundEpsilon)
+                            break;
+                    }
+                }
             }
-            else temp.push_back(num[i]);
         }
-        mp[s].push_back(temp);
-    }
-    map<char,set<char>> fmp;
-    for(auto q : mp){
-        ss.clear();
-        dfs(q.first,q.first,q.first,mp);
-        for(auto g : ss) fmp[q.first].insert(g);
-    }
+    return;
+}
 
-    cout<<'\n';
-    cout<<"FIRST: "<<'\n';
-    for(auto q : fmp){
-        string ans = "";
-        ans += q.first;
-        ans += " = {";
-        for(char r : q.second){
-            ans += r;
-            ans += ',';
-        }
-        ans.pop_back();
-        ans+="}";
-        cout<<ans<<'\n';
+void FOLLOW(char *Result, char c)
+{
+    Result[0] = '\0';
+    if (c == production[0][0])
+    {
+        addToArray(Result, '$');
     }
-
-    map<char,set<char>> gmp;
-    gmp[start].insert('$');
-    int count = 10;
-    while(count--){
-        for(auto q : mp){
-            for(auto r : q.second){
-                for(i=0;i<r.size()-1;i++){
-                    if(r[i]>='A'&&r[i]<='Z'){
-                        if(!(r[i+1]>='A'&&r[i+1]<='Z')) gmp[r[i]].insert(r[i+1]);
-                        else {
-                            char temp = r[i+1];
-                            int j = i+1;
-                            while(temp>='A'&&temp<='Z'){
-                                if(*fmp[temp].begin()=='^'){
-                                    for(auto g : fmp[temp]){
-                                        if(g=='^') continue;
-                                        gmp[r[i]].insert(g);
-                                    }
-                                    j++;
-                                    if(j<r.size()){
-                                        temp = r[j];
-                                        if(!(temp>='A'&&temp<='Z')){
-                                            gmp[r[i]].insert(temp);
-                                            break;
-                                        }
-                                    }
-                                    else{
-                                        for(auto g : gmp[q.first]) gmp[r[i]].insert(g);
-                                        break;
-                                    }
-                                }
-                                else{
-                                    for(auto g : fmp[temp]){
-                                        gmp[r[i]].insert(g);
-                                    }
-                                    break;
-                                }
+    for (int i = 0; i < n; i++)
+    {
+        int done = 0;
+        for (int j = 2; production[i][j] != '\0'; j++)
+        {
+            if (production[i][j] == c)
+            {
+                // printArray(production[i]);
+                // printf("\n");
+                if (production[i][j + 1] != '\0')
+                {
+                    int flag = 1;
+                    char first[20];
+                    for (int k = j + 1; production[i][k] != '\0' && flag; k++) {
+                        flag = 0;
+                        first[0] = '\0';
+                        FIRST(first, production[i][k]);
+                        // printArray(first);
+                        // printf("\n");
+                        for (int l = 0; first[l] != '\0'; l++) {
+                            if (first[l] == '^') {
+                                flag = 1;
+                            } else {
+                                addToArray(Result, first[l]);
                             }
                         }
                     }
+                    if (flag)
+                    {
+                        char follow[20];
+                        follow[0] = '\0';
+                        FOLLOW(follow, production[i][0]);
+                        // printArray(follow);
+                        // printf("\n");
+                        for (int k = 0; follow[k] != '\0'; k++)
+                        {
+                            addToArray(Result, follow[k]);
+                        }
+                    }
                 }
-                if(r[r.size()-1]>='A'&&r[r.size()-1]<='Z'){
-                    for(auto g : gmp[q.first]) gmp[r[i]].insert(g);
+                else
+                {
+                    char follow[20];
+                    follow[0] = '\0';
+                    FOLLOW(follow, production[i][0]);
+                    for (int k = 0; follow[k] != '\0'; k++)
+                    {
+                        addToArray(Result, follow[k]);
+                    }
                 }
+                done = 1;
+                break;
             }
         }
+        if (done) break;
     }
+}
 
-    cout<<'\n';
-    cout<<"FOLLOW: "<<'\n';
-    for(auto q : gmp){
-        string ans = "";
-        ans += q.first;
-        ans += " = {";
-        for(char r : q.second){
-            ans += r;
-            ans += ',';
-        }
-        ans.pop_back();
-        ans+="}";
-        cout<<ans<<'\n';
-    }
-    return 0;
+void addToArray(char *Result, char val)
+{
+    int k;
+    for (k = 0; Result[k] != '\0'; k++)
+        if (Result[k] == val)
+            return;
+    Result[k] = val;
+    Result[k + 1] = '\0';
+}
+
+void printArray(char *a)
+{
+    int i = 0;
+    for (i = 0; a[i] != '\0'; i++)
+        printf("%c ", a[i]);
 }
